@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Language</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <h1>RiddleRush</h1>
+    </nav>
+
+    <div class="container">
+        <h2>Please choose your preferred language:</h2>
+        <button onclick="playPopSound(); selectLanguage('english')">English</button>
+        <button onclick="playPopSound(); selectLanguage('marathi')">Marathi</button>
+        <button onclick="playPopSound(); selectLanguage('hindi')">Hindi</button>
+    </div>
+
+    <script>
+        // Pop sound for button clicks
+        const popSound = new Audio('pop.mp3');  // Make sure pop.mp3 is available
+
+        function playPopSound() {
+            popSound.play();
+        }
+
+        function selectLanguage(language) {
+            localStorage.setItem('selectedLanguage', language);
+            window.location.href = 'puzzle.html';  // Redirect to puzzle page
+        }
+    </script>
+</body>
+
+<style>
+
+/*font for h1 " Fascinate Inline" */
+@import url('https://fonts.googleapis.com/css2?family=Fascinate+Inline&display=swap');
+    /* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Orbitron', sans-serif; /* Futuristic font */
+}
+
+/* Body */
+body {
+    background: linear-gradient(135deg, #1f1c2c, #928dab); /* Futuristic gradient */
+    color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    padding: 20px;
+}
+
+/* Navigation */
+nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 0;
+}
+
+nav h1 {  font-family: "Fascinate Inline", system-ui;
+    color: #0df2ff; /* Neon text */
+    font-size: 2rem;
+    text-shadow: 0 0 10px #0df2ff, 0 0 20px #00d0ff;
+}
+
+/* Container */
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 10px #ff004f, 0 0 40px #ff004f;
+    width: 90%;
+    max-width: 500px;
+    margin-top: 100px; /* Space below nav */
+    text-align: center;
+}
+
+.container h2 {
+    color: #ffd900;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    text-shadow: 0 0 7px #ff004f, 0 0 20px #ff3f6f;
+}
+
+/* Buttons */
+button {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(45deg, #0df2ff, #ff004f);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 15px #0df2ff, 0 0 15px #ff004f;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px #0df2ff, 0 0 25px #ff004f;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    nav h1 {
+        font-size: 1.5rem;
+    }
+
+    .container h2 {
+        font-size: 1.5rem;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 12px 25px;
+    }
+}
+
+</style>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logic Puzzles Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <button id="back-button" onclick="goBack()">⬅ Back</button>
+        <h1>RiddleRush</h1>
+    </nav>
+
+    <div class="info" id="info-section">
+        <div id="timer">60</div>
+        <div id="points">Points: 0</div>
+        <div id="coins">Coins: 10</div>
+        <div id="level">Riddle: 1</div>
+    </div>
+
+    <div class="container">
+        <div id="puzzle-section">
+            <h1>RiddleRush</h1>
+            <div id="puzzle-question"></div>
+            <input type="text" id="puzzle-answer" placeholder="Your answer here">
+            <button onclick="playPopSound(); submitAnswer()">Submit</button>
+            <button onclick="playPopSound(); getHint()">Get Hint</button>
+            <div id="hint"></div>
+            <div id="puzzle-feedback"></div>
+        </div>
+    </div>
+
+   <script>
+
+let selectedLanguage = localStorage.getItem('selectedLanguage');
+let points = 0;
+let coins = 10; 
+let level = 1;
+let currentPuzzle = {};
+let hintUsed = 0;
+let timer;
+let timeLeft = 60;
+let askedPuzzles = [];
+
+const puzzles = {
+             english: [
+     { "question": "What comes once in a minute, twice in a moment, but never in a thousand years?", "answer": "m", "hints": ["It's a letter!", "It's in the word 'moment'."] },
+ 
+     { "question": "The more you take, the more you leave behind. What am I?", "answer": "footsteps", "hints": ["You leave them while walking.", "They are left on the ground."] },
+     { "question": "What has many teeth but can’t bite?", "answer": " comb", "hints": ["You use it in your hair.", "It helps untangle hair."] },
+     { "question": "I have branches, but no fruit, trunk, or leaves. What am I?", "answer": " bank", "hints": ["It holds your money.", "You can save or borrow money there."] },
+     { "question": "What has to be broken before you can use it?", "answer": "egg", "hints": ["You eat what's inside.", "It is often used in cooking."] },
+     { "question": "What is full of holes but still holds water?", "answer": " sponge", "hints": ["You use it to clean.", "It absorbs liquid."] },
+     { "question": "What gets wetter the more it dries?", "answer": " towel", "hints": ["You use it after a shower.", "It helps you dry off."] },
+     { "question": "What can travel around the world while staying in one spot?", "answer": " stamp", "hints": ["It's on letters.", "It allows mail to be sent."] },
+  { "question": "I’m not alive, but I grow; I don’t have lungs, but I need air; I don’t have a mouth, but water kills me. What am I?", "answer": "fire", "hints": ["It burns things.", "It's often used for warmth."] },
+   
+     { "question": "What can fill a room but takes up no space?", "answer": "light", "hints": ["You see it but can't touch it.", "It helps you see in the dark."] },
+     { "question": "What has cities but no houses, forests but no trees, and rivers but no water?", "answer": " map", "hints": ["It helps you find places.", "It's flat and shows the world."] },
+     { "question": "The more you have of it, the less you see. What is it?", "answer": "darkness", "hints": ["It comes at night.", "It makes it hard to see."] },
+     { "question": "I’m tall when I’m young, and I’m short when I’m old. What am I?", "answer": " candle", "hints": ["It melts as it burns.", "It's used to give light."] },
+     { "question": "What has many keys but can’t open a single lock?", "answer": "piano", "hints": ["It makes music.", "It has keys but isn't a door."] },
+     { "question": "What runs but never walks, has a bed but never sleeps?", "answer": " river", "hints": ["It's a body of water.", "It flows continuously."] },
+     { "question": "What has hands but can’t clap?", "answer": " clock", "hints": ["It tells time.", "It has hands that move around."] },
+     { "question": "What has an eye but can’t see?", "answer": " needle", "hints": ["It’s used in sewing.", "It’s small and sharp."] },
+     { "question": "I speak without a mouth and hear without ears. I have nobody, but I come alive with wind. What am I?", "answer": " echo", "hints": ["You hear it in mountains.", "It repeats your words."] },
+     { "question": "What has one head, one foot, and four legs?", "answer": "bed", "hints": ["You sleep on it.", "It’s a piece of furniture."] },
+     { "question": "What has a neck but no head?", "answer": " bottle", "hints": ["You drink from it.", "It holds liquids."] },
+     { "question": "I can be cracked, made, told, and played. What am I?", "answer": "joke", "hints": ["It's often funny.", "You can share it with friends."] },
+     { "question": "What begins with T, ends with T, and has T in it?", "answer": " teapot", "hints": ["It holds a beverage.", "You use it for tea."] },
+  
+     { "question": "What has wheels and flies but is not an aircraft?", "answer": " garbage truck", "hints": ["It collects waste.", "It has a stinky job."] },
+     { "question": "What can you catch but not throw?", "answer": "cold", "hints": ["It makes you sneeze.", "You can spread it to others."] }
+ ]
+ ,
+             marathi: [
+     { "question": "माझ्याकडे तोंड नाही पण मी बोलतो, माझ्याकडे कान नाही पण मी ऐकतो. मी कोण आहे?", "answer": "प्रतिध्वनी", "hints": ["हे एक आवाज आहे!", "हे तुम्ही बोलल्यावर परत येते."] },
+     { "question": "काय एक मिनिटात एकदा येते, क्षणात दोनदा येते पण हजार वर्षांत कधीच येत नाही?", "answer": "म", "hints": ["हे एक अक्षर आहे!", "हे 'क्षण' शब्दात आहे."] },
+     { "question": "माझ्याकडे अनेक दात आहेत पण मी चावू शकत नाही. मी कोण आहे?", "answer": "कंगवा", "hints": ["हे केसांमध्ये वापरले जाते.", "हे केसांची गुंतागुंत सोडवते."] },
+     { "question": "जितके जास्त तुम्ही घेता, तितके कमी तुम्ही पाहता. मी कोण आहे?", "answer": "पावलांचे ठसे", "hints": ["हे चालताना राहतात.", "ते जमिनीवर राहतात."] },
+     { "question": "मी तरुण असताना उंच असतो, आणि वृद्ध असताना लहान होतो. मी कोण आहे?", "answer": "मेणबत्ती", "hints": ["हे प्रकाश देते.", "हे जळताना विरघळते."] },
+     { "question": "माझ्याकडे शाखा आहेत, पण फळ, खोड किंवा पाने नाहीत. मी कोण आहे?", "answer": "बँक", "hints": ["हे तुमचे पैसे ठेवते.", "तुम्ही इथे पैसे वाचवू किंवा कर्ज घेऊ शकता."] },
+     { "question": "काय तुटलेले असते तरच ते वापरले जाऊ शकते?", "answer": "अंडे", "hints": ["तुम्ही ते खाता.", "हे अनेक पदार्थांमध्ये वापरले जाते."] },
+     { "question": "माझ्यात अनेक छिद्रे आहेत पण तरीही मी पाणी धरतो. मी कोण आहे?", "answer": "स्पंज", "hints": ["तुम्ही याचा वापर स्वच्छ करण्यासाठी करता.", "हे द्रव शोषते."] },
+     { "question": "जितका मी ओला होतो, तितका मी जास्त कोरतो. मी कोण आहे?", "answer": "टॉवेल", "hints": ["तुम्ही आंघोळीनंतर वापरता.", "हे तुम्हाला कोरडे करण्यास मदत करते."] },
+     { "question": "मी जागच्या जागी राहूनही जगभर प्रवास करतो. मी कोण आहे?", "answer": "स्टॅम्प", "hints": ["हा पत्रांवर असतो.", "यामुळे पत्रे पाठवता येतात."] },
+     { "question": "मी जिवंत नाही पण वाढतो; माझ्याकडे फुफ्फुस नाही पण मला हवा हवी असते. मी कोण आहे?", "answer": "आग", "hints": ["हे गोष्टी जाळते.", "हे सामान्यतः उष्णतेसाठी वापरले जाते."] },
+     { "question": "मी नेहमी भुकेला असतो, मला नेहमी खायला घालावे लागते. ज्याला मी स्पर्श करतो त्याचा बोट लाल होते. मी कोण आहे?", "answer": "आग", "hints": ["हे गोष्टी जाळते.", "हे चालू राहण्यासाठी इंधन हवे असते."] },
+     { "question": "मी खोली भरतो पण जागा घेत नाही. मी कोण आहे?", "answer": "प्रकाश", "hints": ["तुम्ही हे पाहता पण स्पर्श करू शकत नाही.", "अंधारात ते तुम्हाला दिसण्यासाठी मदत करते."] },
+     { "question": "काय शहरं आहेत पण घरं नाहीत, जंगलं आहेत पण झाडं नाहीत, आणि नद्या आहेत पण पाणी नाही?", "answer": "नकाशा", "hints": ["हे तुम्हाला ठिकाण शोधण्यासाठी मदत करते.", "हे सपाट असते आणि जग दाखवते."] },
+     { "question": "जितके जास्त तुम्ही याला मिळवाल, तितके कमी तुम्ही पाहू शकता. काय आहे ते?", "answer": "अंधार", "hints": ["रात्री हे येते.", "हे पाहायला कठीण करते."] },
+     { "question": "माझ्याकडे एक डोकं आहे, एक पाय आहे, आणि चार पाय आहेत. मी कोण आहे?", "answer": "बेड", "hints": ["तुम्ही यावर झोपता.", "हे एक फर्निचर आहे."] },
+     { "question": "माझ्याकडे एक गळा आहे पण डोकं नाही. मी कोण आहे?", "answer": "बोतल", "hints": ["तुम्ही यातून पाणी पितात.", "हे द्रव धारक आहे."] }, { "question": "काय एकदा पाण्यात पडल्यावरही ताजा राहतो?", "answer": "आलू", "hints": ["हे भाजीमध्ये वापरले जाते.", "याला पाण्यात सोडले तरी काही होत नाही."] },
+     { "question": "काय उगवते पण झाड नाही?", "answer": "सूर्य", "hints": ["हे प्रकाश देते.", "हे दिवसभर आकाशात असते."] },
+     { "question": "काय तुम्हाला तोंडात घालता येत नाही पण चव आहे?", "answer": "संगीत", "hints": ["हे आपल्या कानांना आनंद देते.", "हे ऐकले जाते."] },
+     { "question": "काय एका तासात 60 मिनिटे असतात?", "answer": "घड्याळ", "hints": ["हे वेळ सांगते.", "यामध्ये आकडे आहेत."] },
+     { "question": "काय एकवटले कीच हलते?", "answer": "पाण्याचे थेंब", "hints": ["हे पाण्यात बनते.", "हे पाण्याचा भाग आहे."] }
+ ]
+ ,
+             hindi: [
+     { "question": "कौन सी चीज एक बार मिनट में, दो बार क्षण में, और हजार साल में कभी नहीं आती?", "answer": "म", "hints": ["यह एक अक्षर है!", "यह 'क्षण' शब्द में है."] },
+     { "question": "किसके पास चाबी होती है लेकिन वह ताले नहीं खोलता?", "answer": "एक पियानो", "hints": ["यह संगीत बजाता है.", "आप चाबियों को दबाते हैं."] },
+     { "question": "आप जितना ज्यादा लेंगे, उतना ही कम देखेंगे. यह क्या है?", "answer": "अंधेरा", "hints": ["यह रात को आता है.", "यह देखना मुश्किल बनाता है."] },
+     { "question": "किसके पास दांत होते हैं लेकिन वह काट नहीं सकता?", "answer": "एक कंघी", "hints": ["आप इसका इस्तेमाल अपने बालों में करते हैं.", "यह बालों को सुलझाने में मदद करता है."] },
+     { "question": "मेरे पास शाखाएँ हैं लेकिन फल, तना या पत्तियाँ नहीं हैं. मैं कौन हूँ?", "answer": "एक बैंक", "hints": ["यह आपका पैसा रखता है.", "आप यहाँ पैसे बचा या उधार ले सकते हैं."] },
+     { "question": "किस चीज को तोड़ना पड़ता है ताकि आप उसे उपयोग कर सकें?", "answer": "एक अंडा", "hints": ["आप इसे खाते हैं.", "यह अक्सर खाना बनाने में उपयोग होता है."] },
+     { "question": "किसके पास बहुत से छिद्र हैं लेकिन फिर भी पानी रखता है?", "answer": "एक स्पंज", "hints": ["आप इसका इस्तेमाल सफाई के लिए करते हैं.", "यह तरल को अवशोषित करता है."] },
+     { "question": "क्या है जो कमरे को भर सकता है लेकिन कोई स्थान नहीं लेता?", "answer": "रोशनी", "hints": ["आप इसे देख सकते हैं लेकिन छू नहीं सकते.", "यह रात में देखने में मदद करता है."] },
+     { "question": "मैं जीवित नहीं हूँ, लेकिन बढ़ता हूँ; मेरे पास फेफड़े नहीं हैं, लेकिन मुझे हवा चाहिए; मेरे पास मुँह नहीं है, लेकिन पानी मुझे मार देता है. मैं कौन हूँ?", "answer": "आग", "hints": ["यह चीजें जलाती है.", "यह अक्सर गर्मी के लिए उपयोग होती है."] },
+     { "question": "मैं हमेशा भूखा रहता हूँ, मुझे हमेशा खाना देना होता है. जिस पर मैं छूता हूँ वह जल्दी लाल हो जाता है. मैं कौन हूँ?", "answer": "आग", "hints": ["यह चीजें जलाती है.", "इसे जलाए रखने के लिए ईंधन की जरूरत होती है."] },
+     { "question": "क्या है जो एक स्थान पर रहते हुए पूरे दुनिया में यात्रा कर सकता है?", "answer": "एक स्टैम्प", "hints": ["यह पत्रों पर होता है.", "इससे डाक भेजी जा सकती है."] },
+     { "question": "क्या है जो बहुत सारे शहरों का नक्शा दिखाता है लेकिन उसमें घर नहीं होते?", "answer": "एक मानचित्र", "hints": ["यह आपको स्थान खोजने में मदद करता है.", "यह सपाट होता है और दुनिया दिखाता है."] },
+     { "question": "मेरे पास एक सिर है, एक पैर है, और चार पैर हैं. मैं कौन हूँ?", "answer": "एक बिस्तर", "hints": ["आप इस पर सोते हैं.", "यह एक फर्नीचर है."] },
+     { "question": "मेरे पास एक गला है लेकिन कोई सिर नहीं है. मैं कौन हूँ?", "answer": "एक बोतल", "hints": ["आप इसमें पेय पीते हैं.", "यह तरल को रखता है."] }, { "question": "क्या है जो एक बार पानी में गिरता है, फिर भी गीला नहीं होता?", "answer": "परछाई", "hints": ["यह हमेशा आपके साथ होती है.", "यह प्रकाश से बनती है."] },
+     { "question": "क्या है जो हमेशा आगे बढ़ता है लेकिन कभी पीछे नहीं लौटता?", "answer": "समय", "hints": ["यह लगातार चलता है.", "आप इसे रोक नहीं सकते."] },
+     { "question": "क्या है जो बोलता है लेकिन कभी सुनता नहीं?", "answer": "एक घड़ी", "hints": ["यह समय बताती है.", "इसके हाथ होते हैं."] },
+     { "question": "कौन सी चीज बिना पैर के चल सकती है?", "answer": "नदी", "hints": ["यह पानी होती है.", "यह अपने रास्ते पर बहती है."] },
+     { "question": "कौन सा ऐसा पक्षी है जो कभी उड़ नहीं सकता?", "answer": "पेंगुइन", "hints": ["यह ठंडे इलाकों में रहता है.", "यह तैर सकता है, लेकिन उड़ नहीं सकता."] }
+ ]
+ 
+         };
+
+// Sound effects
+const correctSound = new Audio('correct.mp3');
+const incorrectSound = new Audio('incorrect.mp3');
+const popSound = new Audio('pop.mp3');  // Pop sound for button clicks
+const timeUpSound = new Audio('timeup.mp3'); // Sound when time is up
+
+// Play pop sound for button clicks
+function playPopSound() {
+    popSound.play();
+}
+
+function startGame() {
+    points = 0;
+    level = 0;  // Initialize level at the start
+    askedPuzzles = [];
+    updateUI();
+    getNewPuzzle();
+}
+
+function getNewPuzzle() {
+    hintUsed = 0;
+    timeLeft = 60;
+    document.getElementById("timer").innerText = timeLeft;
+
+    const puzzleList = puzzles[selectedLanguage];
+    let availablePuzzles = puzzleList.filter(puzzle => !askedPuzzles.includes(puzzle));
+
+    if (availablePuzzles.length === 0) {
+        document.getElementById("puzzle-feedback").innerText = "No more puzzles available!";
+        return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * availablePuzzles.length);
+    currentPuzzle = availablePuzzles[randomIndex];
+    askedPuzzles.push(currentPuzzle);
+
+    // Increment level each time a new puzzle is asked
+    level++;
+
+    // Display the new puzzle
+    document.getElementById("puzzle-question").innerText = currentPuzzle.question;
+    document.getElementById("hint").innerText = "";
+    document.getElementById("puzzle-feedback").innerText = "";
+    document.getElementById("puzzle-answer").value = "";
+
+    // Update the level on the UI
+    updateUI();
+
+    clearInterval(timer);
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").innerText = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            timeUpSound.play(); // Play the sound when time runs out
+            document.getElementById("puzzle-feedback").innerText = "Time's up! The answer was: " + currentPuzzle.answer;
+            document.getElementById("puzzle-answer").disabled = true;
+        }
+    }, 1000);
+}
+
+function submitAnswer() {
+    const userAnswer = document.getElementById("puzzle-answer").value.toLowerCase().trim();
+    const correctAnswer = currentPuzzle.answer.toLowerCase().trim();
+
+    if (userAnswer === correctAnswer) {
+        points++;
+        coins += 2; // Add 2 coins for a correct answer
+        correctSound.play(); // Play correct sound
+        updateUI();
+        document.getElementById("puzzle-feedback").innerText = "Correct! You earned 2 coins!";
+        clearInterval(timer);
+        setTimeout(getNewPuzzle, 2000);
+    } else {
+        incorrectSound.play(); // Play incorrect sound
+        document.getElementById("puzzle-feedback").innerText = "Incorrect. Try again!";
+    }
+}
+
+function getHint() {
+    if (coins > 0) {  // Check if the player has enough coins
+        coins--;  // Deduct 1 coin for using a hint
+        updateUI();
+
+        if (currentPuzzle.hints.length > 0) {
+            document.getElementById("hint").innerText = currentPuzzle.hints[hintUsed % currentPuzzle.hints.length];
+            hintUsed++;
+        } else {
+            document.getElementById("hint").innerText = "No hints available for this puzzle.";
+        }
+    } else {
+        document.getElementById("hint").innerText = "Not enough coins for a hint!";
+    }
+}
+
+function updateUI() {
+    document.getElementById("points").innerText = "Points: " + points;
+    document.getElementById("coins").innerText = "Coins: " + coins; 
+    document.getElementById("level").innerText = "Level: " + level;
+}
+
+function goBack() {
+    window.location.href = 'index.html'; // Navigate back to index.html
+}
+
+window.onload = startGame;
+   </script>
+</body>
+
+<style>
+
+/* Fascinate Inline
+for h1 */
+@import url('https://fonts.googleapis.com/css2?family=Fascinate+Inline&display=swap');
+
+
+/* Reset */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Orbitron', sans-serif; /* Futuristic font */
+    }
+    
+    /* Body */
+    body {
+        background: linear-gradient(135deg, #1f1c2c, #928dab); /* Futuristic gradient */
+        color: #f0f0f0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        overflow: hidden;
+        padding: 20px; /* Prevent overflow */
+    }
+    
+    /* Navigation */
+    nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 600px;
+        padding: 10px 20px;
+        background: rgba(0, 0, 0, 0.5);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    nav h1 {  font-family: "Fascinate Inline", system-ui;
+        color: #0df2ff;
+        font-size: 1.8rem;
+        text-shadow: 0 0 10px #0df2ff, 0 0 20px #00d0ff;
+    }
+    
+    #back-button {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: #ff5722;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    
+    #back-button:hover {
+        color: #ff8c42;
+    }
+    
+    /* Info Section in Nav */
+    .info {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 100%;
+        gap: 10px;
+        margin-top:80px;
+    }
+    
+    .info div {
+        padding: 5px 10px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        box-shadow: 0 0 10px #0df2ff;
+        text-align: center;
+        font-size: 0.9rem;
+        color: #fff;
+    }
+    
+    /* Container */
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        max-width: 400px; /* Restrict width on mobile */
+        padding:15px ;
+    }
+    
+    /* Puzzle Section */
+    #puzzle-section {
+        background: rgba(0, 0, 0, 0.7);
+        padding: 30px 20px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px #ff004f, 0 0 40px #ff004f;
+        text-align: center;
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    #puzzle-section h1 {  font-family: "Fascinate Inline", system-ui;
+        color: #5eff00;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+        text-shadow: 0 0 10px #5eff00, 0 0 20px #5eff00;
+    }
+    
+    #puzzle-question {
+        font-size: 1.4rem;
+        margin-bottom: 15px;
+    }
+    
+    #puzzle-answer {
+        padding: 10px;
+        width: 90%;
+        border: none;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        box-shadow: 0 0 10px #00d0ff;
+    }
+    
+    /* Buttons */
+    button {
+        padding: 12px 25px;
+        font-size: 1.1rem;
+        border: none;
+        border-radius: 10px;
+        margin: 10px;
+        background: linear-gradient(45deg, #0df2ff, #ff004f);
+        color: #fff;
+        cursor: pointer;
+        box-shadow: 0 0 15px #0df2ff, 0 0 15px #ff004f;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px #0df2ff, 0 0 25px #ff004f;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .info {
+            font-size: 0.8rem;
+            gap: 5px;
+        }
+    
+        #puzzle-section {
+            padding: 20px 15px;
+        }
+    
+        #puzzle-section h1 {
+            font-size: 1.6rem;
+        }
+    
+        #puzzle-question {
+            font-size: 1.2rem;
+        }
+    
+        #puzzle-answer {
+            font-size: 0.9rem;
+        }
+    
+        button {
+            font-size: 1rem;
+            padding: 10px 20px;
+        }
+    }
+    
+</style>
+</html>
